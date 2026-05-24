@@ -50,7 +50,8 @@
             width: 260px; min-width: 260px; height: 100vh;
             background: var(--surface); border-right: 1px solid var(--border);
             backdrop-filter: blur(20px); display: flex; flex-direction: column;
-            padding: 1.5rem; position: fixed; left: 0; top: 0;
+            padding: 1.5rem; position: fixed; left: 0; top: 0; z-index: 1000;
+            transition: transform 0.3s ease;
         }
         .brand { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; }
         .brand-icon {
@@ -74,12 +75,24 @@
         }
         .nav-item i { width: 20px; text-align: center; }
 
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px); z-index: 999; opacity: 0; transition: opacity 0.3s;
+        }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+
         /* Main */
-        .main { flex: 1; margin-left: 260px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .main { flex: 1; margin-left: 260px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: margin 0.3s ease; }
         .topbar {
             display: flex; align-items: center; justify-content: space-between;
             padding: 1.25rem 2rem; background: var(--surface);
             border-bottom: 1px solid var(--border); backdrop-filter: blur(20px);
+        }
+        .topbar-left { display: flex; align-items: center; gap: 1rem; }
+        .mobile-menu-btn {
+            display: none; background: transparent; border: none; color: var(--text);
+            font-size: 1.5rem; cursor: pointer; padding: 0.2rem;
         }
         .page-title { font-size: 1.5rem; font-weight: 800; }
         .top-actions { display: flex; gap: 0.75rem; }
@@ -122,7 +135,7 @@
             display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
             padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); font-weight: 600;
             font-size: 0.9rem; border: 1px solid transparent; cursor: pointer;
-            transition: all 0.2s; font-family: inherit;
+            transition: all 0.2s; font-family: inherit; white-space: nowrap;
         }
         .btn-primary {
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
@@ -136,7 +149,7 @@
 
         /* Tabs */
         .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; flex-wrap: wrap; background: var(--bg); padding: 0.3rem; border-radius: var(--radius-sm); }
-        .tab-btn { padding: 0.5rem 1rem; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; border-radius: 6px; cursor: pointer; transition: 0.2s; font-family: inherit; }
+        .tab-btn { padding: 0.5rem 1rem; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; border-radius: 6px; cursor: pointer; transition: 0.2s; font-family: inherit; flex-grow: 1; text-align: center; }
         .tab-btn.active { background: var(--surface-hover); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; animation: fadeIn 0.3s; }
@@ -146,10 +159,10 @@
         .preview-box {
             background: var(--bg); border: 2px dashed var(--border); border-radius: var(--radius);
             padding: 2rem; min-height: 320px; display: flex; align-items: center; justify-content: center;
-            margin: 1.5rem 0; position: relative;
+            margin: 1.5rem 0; position: relative; overflow: hidden;
         }
         .export-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
-        .preview-actions { display: flex; gap: 0.75rem; justify-content: center; }
+        .preview-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
 
         /* Accordion */
         .accordion-item { border-bottom: 1px solid var(--border); }
@@ -177,7 +190,7 @@
         .custom-icon-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.5rem; border-radius: 4px; font-size: 0.8rem; transition: 0.2s; }
         .custom-icon-btn:hover { border-color: var(--accent); }
 
-        .phone { width: 260px; height: 520px; background: #111; border-radius: 32px; padding: 10px; margin: 0 auto; border: 3px solid #333; }
+        .phone { width: 100%; max-width: 300px; height: 550px; background: #111; border-radius: 32px; padding: 10px; margin: 0 auto; border: 3px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         .phone-screen { width: 100%; height: 100%; background: linear-gradient(180deg, #0b0b14, #1a1a2e); border-radius: 24px; overflow-y: auto; padding: 1.5rem 1rem; text-align: center; }
         .ml-avatar { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; overflow: hidden;}
         .ml-title { font-weight: 700; margin-bottom: 0.25rem; }
@@ -185,7 +198,7 @@
         .ml-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); margin-bottom: 0.6rem; color: var(--text); text-decoration: none; font-weight: 500; font-size: 0.9rem; border-left: 3px solid var(--accent); }
         .ml-item:hover { background: rgba(255,255,255,0.08); transform: translateX(4px); transition: 0.2s; }
 
-        /* History, Dashboard, Templates, Scanner ... */
+        /* History, Dashboard, Templates ... */
         .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
         .h-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; transition: 0.3s; }
         .h-card:hover { transform: translateY(-4px); border-color: var(--accent); }
@@ -198,13 +211,11 @@
         .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; background: rgba(99,102,241,0.15); color: var(--accent); border: 1px solid rgba(99,102,241,0.2); }
 
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
-        @media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } }
         .stat { display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); backdrop-filter: blur(20px); }
         .stat-icon { width: 48px; height: 48px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; }
         .stat h3 { font-size: 1.75rem; font-weight: 800; }
         .stat p { font-size: 0.85rem; color: var(--text-secondary); }
         .charts { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
-        @media (max-width: 900px) { .charts { grid-template-columns: 1fr; } }
         .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
 
         .t-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
@@ -215,6 +226,7 @@
         .t-info h4 { margin-bottom: 0.25rem; font-size: 1rem; }
         .t-info p { font-size: 0.85rem; color: var(--text-secondary); }
 
+        /* Scanner */
         .scanner { max-width: 600px; margin: 0 auto; text-align: center; padding: 2rem; }
         .cam-box { position: relative; width: 100%; aspect-ratio: 4/3; background: #000; border-radius: var(--radius); overflow: hidden; margin: 1.5rem 0; }
         .cam-box video { width: 100%; height: 100%; object-fit: cover; }
@@ -229,13 +241,45 @@
         .toast { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 1rem 1.5rem; border-radius: var(--radius-sm); box-shadow: 0 8px 32px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease; backdrop-filter: blur(20px); }
         .toast.ok { border-left: 4px solid var(--success); }
         .toast.err { border-left: 4px solid #ef4444; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        .hidden { display: none !important; }
+        /* ================= RESPONSIVE MEDIA QUERIES ================= */
+        @media (max-width: 900px) { 
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .charts { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: block; }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            
+            .topbar { padding: 1rem; }
+            .top-actions .btn span { display: none; } /* إخفاء النص وترك الأيقونة لتوفير المساحة */
+            .top-actions .btn { padding: 0.5rem 0.75rem; }
+            
+            .content { padding: 1rem; }
+            .page-title { font-size: 1.25rem; }
+            
+            .split { gap: 1rem; }
+            .panel { padding: 1rem; }
+            
+            .export-row { grid-template-columns: 1fr; gap: 0.5rem; }
+            .form-row { grid-template-columns: 1fr; }
+            
+            .link-card { grid-template-columns: auto 1fr; }
+            .link-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px solid var(--border); margin-top: 0.5rem; }
+            
+            .scanner { padding: 1rem; }
+            .history-grid { grid-template-columns: 1fr; }
+            .t-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <div class="app" id="mainApp">
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+        
         <aside class="sidebar">
             <div class="brand">
                 <div class="brand-icon"><i class="fa-solid fa-qrcode"></i></div>
@@ -256,10 +300,17 @@
 
         <main class="main">
             <header class="topbar">
-                <h1 class="page-title" id="pageTitle">QR Generator</h1>
+                <div class="topbar-left">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+                    <h1 class="page-title" id="pageTitle">QR Generator</h1>
+                </div>
                 <div class="top-actions">
-                    <button class="btn btn-outline" onclick="document.getElementById('importFile').click()"><i class="fa-solid fa-file-import"></i> Import</button>
-                    <button class="btn btn-primary" onclick="exportProject()"><i class="fa-solid fa-file-export"></i> Export</button>
+                    <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">
+                        <i class="fa-solid fa-file-import"></i> <span>Import</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="exportProject()">
+                        <i class="fa-solid fa-file-export"></i> <span>Export</span>
+                    </button>
                     <input type="file" id="importFile" accept=".json" hidden onchange="importProject(this)">
                 </div>
             </header>
@@ -357,7 +408,7 @@
                             <input type="text" id="qr-name" placeholder="My QR Code">
                         </div>
                         <div style="display:flex; gap:0.75rem;">
-                            <button class="btn btn-primary btn-lg" onclick="saveQR()" style="flex:1;"><i class="fa-solid fa-floppy-disk"></i> Save QR</button>
+                            <button class="btn btn-primary btn-lg" onclick="saveQR()" style="flex:1;"><i class="fa-solid fa-floppy-disk"></i> Save</button>
                             <button class="btn btn-outline btn-lg" onclick="downloadQR()"><i class="fa-solid fa-download"></i></button>
                         </div>
                     </div>
@@ -375,9 +426,9 @@
                             <div class="form-group"><label>Transparent</label><input type="checkbox" id="exp-trans"></div>
                         </div>
                         <div class="preview-actions">
-                            <button class="btn btn-primary" onclick="downloadQR()"><i class="fa-solid fa-download"></i> Download</button>
-                            <button class="btn btn-outline" onclick="copyQR()"><i class="fa-regular fa-copy"></i> Copy</button>
-                            <button class="btn btn-outline" onclick="shareQR()"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                            <button class="btn btn-primary" onclick="downloadQR()"><i class="fa-solid fa-download"></i></button>
+                            <button class="btn btn-outline" onclick="copyQR()"><i class="fa-regular fa-copy"></i></button>
+                            <button class="btn btn-outline" onclick="shareQR()"><i class="fa-solid fa-share-nodes"></i></button>
                         </div>
                     </div>
                 </div>
@@ -387,7 +438,7 @@
                 <div class="split">
                     <div class="panel">
                         <h3><i class="fa-solid fa-layer-group"></i> Smart Multi-Link</h3>
-                        <p style="color:var(--text-secondary); margin-bottom:1rem;">Create a landing page with unlimited links inside one QR.</p>
+                        <p style="color:var(--text-secondary); margin-bottom:1rem; font-size: 0.9rem;">Create a landing page with unlimited links inside one QR.</p>
                         <div class="form-group"><label>Page Title</label><input type="text" id="ml-title" value="John's Links" oninput="renderML()"></div>
                         <div class="form-group"><label>Bio</label><textarea id="ml-bio" rows="2" oninput="renderML()">Designer & Developer</textarea></div>
                         
@@ -395,20 +446,20 @@
                             <label>Avatar Image (Upload)</label>
                             <input type="file" id="ml-img-file" accept="image/*" onchange="handleAvatarUpload(this)">
                         </div>
-                        <div id="ml-avatar-ctrls" style="display:none; gap:10px; margin-bottom:1rem;">
-                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.7rem;">Zoom</label><input type="range" id="ml-av-z" min="20" max="250" value="100" oninput="renderML()"></div>
-                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.7rem;">Pos X</label><input type="range" id="ml-av-x" min="0" max="100" value="50" oninput="renderML()"></div>
-                            <div class="form-group" style="margin-bottom:0;"><label style="font-size:0.7rem;">Pos Y</label><input type="range" id="ml-av-y" min="0" max="100" value="50" oninput="renderML()"></div>
+                        <div id="ml-avatar-ctrls" style="display:none; gap:10px; margin-bottom:1rem; flex-wrap: wrap;">
+                            <div class="form-group" style="margin-bottom:0; flex:1;"><label style="font-size:0.7rem;">Zoom</label><input type="range" id="ml-av-z" min="20" max="250" value="100" oninput="renderML()"></div>
+                            <div class="form-group" style="margin-bottom:0; flex:1;"><label style="font-size:0.7rem;">Pos X</label><input type="range" id="ml-av-x" min="0" max="100" value="50" oninput="renderML()"></div>
+                            <div class="form-group" style="margin-bottom:0; flex:1;"><label style="font-size:0.7rem;">Pos Y</label><input type="range" id="ml-av-y" min="0" max="100" value="50" oninput="renderML()"></div>
                         </div>
 
                         <h4 style="margin:1.5rem 0 1rem;">Links</h4>
                         <div id="links-list"></div>
-                        <button class="btn btn-outline btn-sm" onclick="addLink()"><i class="fa-solid fa-plus"></i> Add Link</button>
+                        <button class="btn btn-outline btn-sm" onclick="addLink()" style="width: 100%; margin-bottom: 1rem;"><i class="fa-solid fa-plus"></i> Add Link</button>
 
                         <div class="form-group" style="margin-top:1.5rem;">
                             <label>QR Name</label><input type="text" id="ml-name" placeholder="My Multi-Link QR">
                         </div>
-                        <button class="btn btn-primary btn-lg" onclick="saveML()" style="width:100%;"><i class="fa-solid fa-floppy-disk"></i> Save Multi-Link QR</button>
+                        <button class="btn btn-primary btn-lg" onclick="saveML()" style="width:100%;"><i class="fa-solid fa-floppy-disk"></i> Save Multi-Link</button>
                     </div>
 
                     <div class="panel preview-area">
@@ -432,8 +483,8 @@
                 <div class="panel">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:1rem;">
                         <h2>QR History</h2>
-                        <div style="display:flex; gap:0.75rem;">
-                            <input type="text" id="hist-search" placeholder="Search..." oninput="renderHistory()" style="width:200px;">
+                        <div style="display:flex; gap:0.75rem; flex-wrap: wrap;">
+                            <input type="text" id="hist-search" placeholder="Search..." oninput="renderHistory()" style="width:100%; max-width: 200px;">
                             <select id="hist-filter" onchange="renderHistory()">
                                 <option value="all">All Types</option><option>url</option><option>text</option><option>email</option><option>phone</option><option>multilink</option><option>vcard</option><option>wifi</option>
                             </select>
@@ -516,7 +567,7 @@
                 document.addEventListener('DOMContentLoaded', () => {
                     document.body.innerHTML = `
                         <div style="min-height: 100vh; background: var(--bg); display: flex; justify-content: center; padding: 2rem 1rem;">
-                            <div class="phone" style="border: none; background: transparent; width: 100%; max-width: 450px; height: auto;">
+                            <div class="phone" style="border: none; background: transparent; width: 100%; max-width: 450px; height: auto; box-shadow: none;">
                                 <div class="phone-screen" style="border-radius: var(--radius); padding: 2rem 1.5rem;">
                                     <div id="stand-avatar" class="ml-avatar" style="width:90px;height:90px; overflow:hidden;"></div>
                                     <h1 style="font-weight:700; margin-bottom:0.25rem; font-size:1.5rem;">${payload.title || ''}</h1>
@@ -574,12 +625,9 @@
                         backgroundOptions: { color: '#fff' }
                     });
                     qrCode.append(document.getElementById('qr-container'));
-                } else {
-                    throw new Error("Library missing");
                 }
             } catch (e) {
-                document.getElementById('qr-container').innerHTML = '<div style="color:#ef4444; text-align:center; padding: 2rem; border: 1px dashed #ef4444; border-radius: 8px;">تأكد من اتصال الإنترنت لتحميل أدوات QR Code</div>';
-                toast('Internet connection required for full functionality', 'err');
+                console.error("QR Library error", e);
             }
 
             try { initSortable(); } catch(e){}
@@ -587,6 +635,46 @@
             renderHistory();
             renderTemplates();
         });
+
+        // ================= UI / MOBILE MENUS =================
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('active');
+        }
+
+        function goTo(section, btn) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            document.getElementById(section).classList.add('active');
+            
+            const titles = { generator: 'QR Generator', multilink: 'Multi-Link', history: 'History', dashboard: 'Analytics', templates: 'Templates', scanner: 'Scanner' };
+            document.getElementById('pageTitle').textContent = titles[section] || '';
+            
+            if (section === 'dashboard') renderDashboard();
+            
+            // Close sidebar on mobile after clicking
+            if (window.innerWidth <= 768) {
+                document.querySelector('.sidebar').classList.remove('open');
+                document.querySelector('.sidebar-overlay').classList.remove('active');
+            }
+        }
+
+        function setTab(type, btn) {
+            qrType = type;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            document.getElementById('pane-' + type).classList.add('active');
+            updateQR();
+        }
+
+        function setScanTab(t, btn) {
+            document.querySelectorAll('#scanner .tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#scanner .tab-pane').forEach(p => p.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            document.getElementById('scan-' + t).classList.add('active');
+        }
 
         // ================= CLOUDINARY UPLOAD =================
         async function uploadToCloudinary(file, callback) {
@@ -611,39 +699,11 @@
                     toast('تم الرفع بنجاح!');
                 } else {
                     toast('فشل الرفع: ' + (data.error?.message || 'خطأ غير معروف'), 'err');
-                    console.error('Cloudinary Error:', data);
                 }
             } catch (error) {
                 console.error(error);
                 toast('حدث خطأ في الاتصال بالسيرفر', 'err');
             }
-        }
-
-        // ================= NAVIGATION =================
-        function goTo(section, btn) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-            document.getElementById(section).classList.add('active');
-            const titles = { generator: 'QR Generator', multilink: 'Multi-Link', history: 'History', dashboard: 'Analytics', templates: 'Templates', scanner: 'Scanner' };
-            document.getElementById('pageTitle').textContent = titles[section] || '';
-            if (section === 'dashboard') renderDashboard();
-        }
-
-        function setTab(type, btn) {
-            qrType = type;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-            document.getElementById('pane-' + type).classList.add('active');
-            updateQR();
-        }
-
-        function setScanTab(t, btn) {
-            document.querySelectorAll('#scanner .tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('#scanner .tab-pane').forEach(p => p.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-            document.getElementById('scan-' + t).classList.add('active');
         }
 
         // ================= QR GENERATOR =================
@@ -798,7 +858,7 @@
                         <input type="text" value="${l.name}" onchange="updateLink(${l.id},'name',this.value)" placeholder="Name">
                         <input type="url" value="${l.url}" onchange="updateLink(${l.id},'url',this.value)" placeholder="https://...">
                     </div>
-                    <div class="link-actions" style="display:flex; gap:0.5rem; align-items:center;">
+                    <div class="link-actions">
                         <input type="color" value="${l.color}" style="width:25px;height:25px;padding:0;border:none;background:none;" onchange="updateLink(${l.id},'color',this.value)">
                         
                         <div class="upload-btn-wrapper" title="Upload Icon Image">
@@ -862,7 +922,12 @@
                  links: mlLinks 
              });
              const encoded = btoa(unescape(encodeURIComponent(payload)));
-             const baseUrl = window.location.origin + window.location.pathname;
+             let baseUrl = window.location.origin + window.location.pathname;
+             
+             if (baseUrl.startsWith('file://') || baseUrl === 'null') {
+                 baseUrl = 'https://eslamahmed7.github.io/qr-nexus/'; 
+             }
+             
              return baseUrl + '#ml=' + encoded;
         }
 
@@ -880,7 +945,6 @@
                 if(typeof QRCodeStyling === 'undefined') return toast('QR library not loaded. Check internet.', 'err');
                 const targetUrl = getMLUrl();
                 
-                // هنولد الـ QR Code مباشرة بناءً على اللينك اللي جواه الرابط القصير
                 const temp = new QRCodeStyling({ 
                     width: 1024, 
                     height: 1024, 
